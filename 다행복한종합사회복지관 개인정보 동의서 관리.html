@@ -1,0 +1,1654 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>개인정보 동의서 시스템 — 다행복한종합사회복지관</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@400;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<style>
+:root{
+  --ink:#1a1a2e;--ink2:#2d2d44;--gold:#c9a84c;--gold-l:#e8c97e;
+  --parch:#faf7f0;--parch-d:#f0ebe0;--red:#c0392b;--blue:#2563eb;
+  --border:#d4c9a8;--body:#2c2c3a;--muted:#6b6475;--green:#16a34a;
+  --step-active:#2563eb;--step-done:#16a34a;--step-idle:#cbd5e1;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Sans KR',sans-serif;background:#f1f5f9;min-height:100vh}
+
+/* ── 탑바 ── */
+.topbar{background:var(--ink);display:flex;align-items:stretch;box-shadow:0 2px 12px rgba(0,0,0,.4);position:sticky;top:0;z-index:100}
+.topbar-brand{padding:0 20px;display:flex;align-items:center;gap:10px;border-right:1px solid rgba(255,255,255,.08)}
+
+.topbar-brand span{font-family:'Noto Serif KR',serif;font-size:13px;color:var(--gold-l);letter-spacing:.06em}
+.tabs{display:flex;align-items:stretch;margin-left:auto}
+.tab-btn{padding:0 18px;font-size:13px;font-weight:500;color:rgba(255,255,255,.45);background:none;border:none;border-bottom:3px solid transparent;cursor:pointer;transition:all .2s;display:flex;align-items:center;gap:6px;white-space:nowrap}
+.tab-btn:hover{color:rgba(255,255,255,.8)}
+.tab-btn.active{color:var(--gold-l);border-bottom-color:var(--gold)}
+
+/* ── 공통 ── */
+.page{display:none;padding:22px 16px 60px;max-width:1100px;margin:0 auto}
+.page.active{display:block}
+.card{background:#fff;border-radius:10px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:16px;overflow:hidden}
+.card-head{padding:13px 18px;border-bottom:1px solid #f1f5f9;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.card-head h2{font-family:'Noto Serif KR',serif;font-size:15px;font-weight:600;color:var(--ink);display:flex;align-items:center;gap:8px}
+.card-head h2 .badge{font-size:10px;font-weight:600;background:var(--gold);color:var(--ink);padding:2px 7px;border-radius:20px;font-family:'Noto Sans KR',sans-serif}
+.card-body{padding:18px}
+
+/* ── 폼 ── */
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-row.cols3{grid-template-columns:1fr 1fr 1fr}
+.form-row.cols1{grid-template-columns:1fr}
+@media(max-width:560px){.form-row,.form-row.cols3{grid-template-columns:1fr}}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group label{font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.form-group input,.form-group select,.form-group textarea{padding:10px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-family:'Noto Sans KR',sans-serif;font-size:13px;color:var(--body);outline:none;transition:border-color .2s;background:#fff}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{border-color:var(--blue)}
+.form-group textarea{resize:vertical;min-height:70px;line-height:1.7}
+
+/* ── 버튼 ── */
+.btn{display:inline-flex;align-items:center;gap:6px;padding:9px 15px;border-radius:7px;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:500;border:none;cursor:pointer;transition:all .15s;white-space:nowrap}
+.btn-primary{background:var(--blue);color:#fff}.btn-primary:hover{background:#1d4ed8}
+.btn-gold{background:var(--gold);color:var(--ink);font-weight:600}.btn-gold:hover{background:#b8942a}
+.btn-red{background:var(--red);color:#fff}.btn-red:hover{background:#a93226}
+.btn-ghost{background:#f8fafc;color:var(--body);border:1.5px solid #e2e8f0}.btn-ghost:hover{background:#f1f5f9}
+.btn-green{background:var(--green);color:#fff}.btn-green:hover{background:#15803d}
+.btn-sm{padding:5px 10px;font-size:11px}
+.btn-lg{padding:12px 22px;font-size:14px;font-weight:600}
+
+/* ════════════════════════════
+   STEP 표시줄
+════════════════════════════ */
+.step-bar{display:flex;align-items:center;gap:0;margin-bottom:22px;background:#fff;border-radius:10px;padding:16px 20px;box-shadow:0 1px 4px rgba(0,0,0,.07)}
+.step-item{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+.step-circle{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;flex-shrink:0;transition:all .3s}
+.step-circle.idle{background:#f1f5f9;color:#94a3b8;border:2px solid #e2e8f0}
+.step-circle.active{background:var(--blue);color:#fff;border:2px solid var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.15)}
+.step-circle.done{background:var(--green);color:#fff;border:2px solid var(--green)}
+.step-label{font-size:12px;font-weight:600;color:#94a3b8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:color .3s}
+.step-label.active{color:var(--blue)}
+.step-label.done{color:var(--green)}
+.step-divider{flex:0 0 24px;height:2px;background:#e2e8f0;margin:0 4px;transition:background .3s}
+.step-divider.done{background:var(--green)}
+@media(max-width:480px){.step-label{display:none}.step-divider{flex:0 0 12px}}
+
+/* ════════════════════════════
+   STEP 1: 서비스 선택
+════════════════════════════ */
+#step1-area{animation:fadeIn .3s ease}
+.svc-select-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+@media(max-width:480px){.svc-select-grid{grid-template-columns:1fr}}
+.svc-select-card{border:2px solid #e2e8f0;border-radius:10px;padding:16px;cursor:pointer;transition:all .2s;position:relative;background:#fff;user-select:none}
+.svc-select-card:hover{border-color:#93c5fd;background:#eff6ff}
+.svc-select-card.selected{border-color:var(--blue);background:#eff6ff;box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.svc-select-card .chk{position:absolute;top:12px;right:12px;width:20px;height:20px;border-radius:50%;border:2px solid #e2e8f0;background:#fff;display:flex;align-items:center;justify-content:center;transition:all .2s}
+.svc-select-card.selected .chk{background:var(--blue);border-color:var(--blue);color:#fff;font-size:11px}
+.svc-select-card .sc-name{font-size:13px;font-weight:700;color:var(--ink);margin-bottom:4px;padding-right:24px}
+.svc-select-card .sc-org{font-size:11px;color:var(--muted)}
+.svc-select-card .sc-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.sc-tag{font-size:10px;padding:1px 6px;border-radius:20px;font-weight:600}
+.sc-tag-g{background:#dcfce7;color:#15803d}
+.sc-tag-b{background:#dbeafe;color:#1d4ed8}
+.sc-tag-y{background:#fef9c3;color:#a16207}
+.select-none-msg{text-align:center;padding:32px;font-size:13px;color:var(--muted)}
+
+/* ════════════════════════════
+   STEP 2: 개인정보 입력
+════════════════════════════ */
+#step2-area{animation:fadeIn .3s ease}
+.selected-svc-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.svc-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:20px;font-size:11.5px;font-weight:600;color:var(--blue)}
+
+/* ════════════════════════════
+   STEP 3: 동의서
+════════════════════════════ */
+#step3-area{animation:fadeIn .3s ease}
+.svc-tabs{display:flex;gap:0;border-bottom:2px solid #e2e8f0;margin-bottom:16px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.svc-tab{padding:9px 16px;font-size:12px;font-weight:500;color:var(--muted);background:none;border:none;border-bottom:2px solid transparent;cursor:pointer;white-space:nowrap;font-family:'Noto Sans KR',sans-serif;transition:all .15s;margin-bottom:-2px}
+.svc-tab.active{color:var(--blue);border-bottom-color:var(--blue);font-weight:600}
+.svc-tab.signed{color:var(--green);border-bottom-color:var(--green)}
+.svc-tab.signed::after{content:' ✓';font-size:10px}
+.svc-pane{display:none}.svc-pane.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── 동의서 문서 ── */
+.doc-preview{background:var(--parch);border:1px solid var(--border);border-radius:4px;padding:34px 42px;position:relative}
+@media(max-width:560px){.doc-preview{padding:20px 14px}}
+.doc-preview::before{content:'개인정보동의';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-30deg);font-family:'Noto Serif KR',serif;font-size:60px;font-weight:700;color:rgba(0,0,0,.025);pointer-events:none;white-space:nowrap}
+.dp-org{font-family:'Noto Serif KR',serif;font-size:12px;font-weight:700;color:var(--ink);letter-spacing:.06em}
+.dp-header-row{display:flex;align-items:center;justify-content:space-between;padding-bottom:12px;border-bottom:2px solid var(--ink);margin-bottom:20px}
+.dp-docno{font-size:10px;color:var(--muted)}
+.dp-title{text-align:center;margin-bottom:16px}
+.dp-title h1{font-family:'Noto Serif KR',serif;font-size:clamp(16px,4vw,22px);font-weight:700;color:var(--ink);letter-spacing:.1em;line-height:1.4}
+.dp-title p{font-size:11px;color:var(--muted);margin-top:4px}
+.dp-intro{font-size:11.5px;color:var(--body);line-height:1.9;margin-bottom:16px;padding:12px 14px;background:rgba(201,168,76,.07);border-left:3px solid var(--gold);border-radius:0 4px 4px 0}
+.dp-section{margin-bottom:14px}
+.dp-sec-title{font-family:'Noto Serif KR',serif;font-size:12px;font-weight:700;color:var(--ink);padding:7px 11px;background:var(--parch-d);border:1px solid var(--border);border-bottom:none;border-radius:4px 4px 0 0;display:flex;align-items:center;gap:7px}
+.dp-sec-num{display:inline-flex;align-items:center;justify-content:center;width:17px;height:17px;background:var(--ink);color:var(--parch);border-radius:50%;font-size:9px;font-weight:700;flex-shrink:0}
+.dp-sec-body{border:1px solid var(--border);border-radius:0 0 4px 4px;overflow:hidden}
+.dp-table{width:100%;border-collapse:collapse;font-size:11px;color:var(--body)}
+.dp-table th{background:var(--ink);color:#fff;padding:7px 9px;text-align:center;font-weight:500;font-size:10.5px}
+.dp-table td{padding:7px 9px;border-bottom:1px solid var(--border);vertical-align:top;line-height:1.7}
+.dp-table tr:last-child td{border-bottom:none}
+.dp-table .col-lbl{background:var(--parch-d);font-weight:500;color:var(--ink2);width:26%;border-right:1px solid var(--border);white-space:nowrap}
+.dp-agree{display:flex;align-items:center;gap:7px;padding:10px 13px;background:rgba(201,168,76,.07);border-top:1px solid var(--border)}
+.dp-agree-check{width:16px;height:16px;border:1.5px solid var(--ink);border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:var(--red);font-weight:700}
+.dp-agree span{font-size:11px;font-weight:600;color:var(--ink)}
+.dp-agree .sub{font-size:10px;font-weight:400;color:var(--muted);margin-left:3px}
+.consent-choice-row{display:flex;align-items:center;gap:14px;padding:9px 13px;border-top:1px solid var(--border);background:rgba(201,168,76,.04)}
+.choice-opts{display:flex;gap:12px}
+.choice-opt{display:flex;align-items:center;gap:4px;cursor:pointer;font-size:11.5px;color:var(--body)}
+.choice-opt input[type=radio]{width:13px;height:13px;accent-color:var(--ink);cursor:pointer}
+.mkt-channels{display:flex;flex-wrap:wrap;gap:8px;padding:9px 13px;border-top:1px solid var(--border);background:#fafbfc}
+.mkt-ch{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--body);cursor:pointer}
+.mkt-ch input{accent-color:var(--ink);cursor:pointer}
+/* 서명란 */
+.dp-sig-area{margin-top:22px;border:1px solid var(--border);border-radius:4px;overflow:hidden}
+.dp-sig-head{background:var(--ink);color:#fff;padding:8px 13px;font-size:11px;font-weight:500;letter-spacing:.06em}
+.dp-sig-body{padding:14px 16px 12px;background:var(--parch-d)}
+.dp-sig-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px}
+@media(max-width:440px){.dp-sig-row{grid-template-columns:1fr;gap:8px}}
+.dp-sig-field{display:flex;flex-direction:column;gap:4px}
+.dp-sig-field .lbl{font-size:9.5px;font-weight:600;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.dp-sig-field .val{padding:7px 9px;border-bottom:2px solid var(--ink);font-size:12px;font-family:'Noto Serif KR',serif;font-weight:600;color:var(--ink);min-height:32px}
+.sig-pad-wrap{display:flex;flex-direction:column;gap:4px;margin-top:10px}
+.sig-pad-label-row{display:flex;align-items:center;justify-content:space-between}
+.sig-pad-label-row .lbl{font-size:9.5px;font-weight:600;color:var(--muted);letter-spacing:.1em;text-transform:uppercase}
+.btn-clr{font-size:10px;color:var(--red);background:none;border:1px solid var(--red);border-radius:4px;padding:2px 8px;cursor:pointer}
+.sig-canvas{width:100%;height:96px;border:1.5px dashed var(--border);border-radius:6px;background:#fff;cursor:crosshair;touch-action:none;display:block}
+.sig-canvas.has-sig{border:1.5px solid var(--ink)}
+.sig-img-print{display:none;width:100%;height:96px;object-fit:contain;border:1.5px solid var(--ink);border-radius:6px;background:#fff}
+.sig-hint{font-size:10px;color:var(--muted);text-align:center;margin-top:3px}
+.dp-guardian{margin-top:12px;background:rgba(37,99,235,.04);border:1.5px solid rgba(37,99,235,.18);border-radius:8px;overflow:hidden}
+.dp-guardian-head{padding:10px 14px;background:rgba(37,99,235,.08);display:flex;align-items:center;gap:8px}
+.dp-guardian-head .gt{font-size:11.5px;font-weight:700;color:var(--blue);flex:1}
+/* 동의 체크 영역 */
+.guardian-agree-row{display:flex;align-items:center;gap:16px;padding:12px 14px;border-bottom:1px solid rgba(37,99,235,.12)}
+.guardian-agree-row .ga-label{font-size:12px;font-weight:600;color:var(--ink);flex:1}
+.guardian-opts{display:flex;gap:14px}
+.guardian-opt{display:flex;align-items:center;gap:5px;cursor:pointer;font-size:12.5px;font-weight:500;color:var(--body)}
+.guardian-opt input[type=radio]{width:15px;height:15px;accent-color:var(--blue);cursor:pointer}
+.guardian-opt.agree-yes input:checked ~ span{color:var(--green)}
+.guardian-opt.agree-no  input:checked ~ span{color:var(--red)}
+/* 서명 입력 영역 */
+.dp-guardian-body{padding:14px}
+.dp-guardian-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:12px}
+@media(max-width:480px){.dp-guardian-row{grid-template-columns:1fr;gap:8px}}
+.dp-guardian-field{display:flex;flex-direction:column;gap:5px}
+.dp-guardian-field .lbl{font-size:9.5px;font-weight:600;color:var(--muted);letter-spacing:.08em;text-transform:uppercase}
+.dp-guardian-field .val{padding:7px 10px;border-bottom:1.5px solid var(--blue);font-size:12px;color:var(--ink);min-height:32px;font-family:'Noto Serif KR',serif}
+/* 타이핑 입력 필드 */
+.guardian-input{width:100%;padding:7px 10px;border:none;border-bottom:1.5px solid var(--blue);background:transparent;font-family:'Noto Serif KR',serif;font-size:13px;color:var(--ink);outline:none;transition:border-color .2s}
+.guardian-input:focus{border-bottom-color:#1d4ed8;background:rgba(37,99,235,.04)}
+.guardian-input::placeholder{color:#aab;font-family:'Noto Sans KR',sans-serif;font-size:12px}
+.dp-guardian-notice{font-size:10px;color:var(--muted);line-height:1.8;padding:10px 14px;border-top:1px dashed rgba(37,99,235,.15);background:#fafbfc}
+.dp-sig-notice{margin-top:10px;font-size:10px;color:var(--muted);line-height:1.8;padding:9px 11px;border:1px dashed var(--border);border-radius:4px}
+
+/* ── 서비스 관리 ── */
+.service-list{display:flex;flex-direction:column;gap:8px}
+.service-item{border:1.5px solid #e2e8f0;border-radius:8px;overflow:hidden}
+.service-item-head{padding:11px 14px;display:flex;align-items:center;gap:10px;cursor:pointer;background:#fafbfc}
+.service-item-head .svc-name{font-size:13px;font-weight:600;color:var(--ink);flex:1}
+.svc-badge{font-size:10px;padding:2px 8px;border-radius:20px;font-weight:600}
+.badge-active{background:#dcfce7;color:#15803d}
+.badge-inactive{background:#fef3c7;color:#92400e}
+.service-item-body{padding:14px;border-top:1px solid #f1f5f9;display:none}
+.service-item.open .service-item-body{display:block}
+.service-item.open .service-item-head{background:#eff6ff}
+.table-editor{width:100%;border-collapse:collapse;font-size:12px}
+.table-editor th{background:#f1f5f9;padding:7px 9px;text-align:left;font-weight:600;color:var(--muted);border:1px solid #e2e8f0}
+.table-editor td{padding:5px 7px;border:1px solid #e2e8f0;vertical-align:top}
+.table-editor td input,.table-editor td textarea{width:100%;border:none;background:transparent;font-family:'Noto Sans KR',sans-serif;font-size:12px;color:var(--body);outline:none;resize:none;min-height:26px;line-height:1.5}
+.toggle-wrap{display:flex;align-items:center;gap:7px}
+.toggle{position:relative;width:34px;height:19px;display:inline-block}
+.toggle input{opacity:0;width:0;height:0}
+.toggle-slider{position:absolute;inset:0;background:#cbd5e1;border-radius:20px;cursor:pointer;transition:.2s}
+.toggle-slider::before{content:'';position:absolute;width:15px;height:15px;left:2px;top:2px;background:#fff;border-radius:50%;transition:.2s}
+.toggle input:checked+.toggle-slider{background:var(--green)}
+.toggle input:checked+.toggle-slider::before{transform:translateX(15px)}
+.toggle-lbl{font-size:12px;color:var(--muted)}
+
+/* ── Google Sheets 패널 ── */
+.sheets-panel{background:#f0fdf4;border:1.5px solid #bbf7d0;border-radius:8px;padding:14px 16px;margin-bottom:14px}
+.sheets-panel .sp-head{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.sheets-panel .sp-head h3{font-size:13px;font-weight:600;color:var(--green)}
+.sp-status{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 8px;border-radius:20px;font-weight:600}
+.sp-status.connected{background:#dcfce7;color:#15803d}
+.sp-status.disconnected{background:#fee2e2;color:#dc2626}
+.sp-status.testing{background:#fef3c7;color:#92400e}
+.sheets-url-row{display:flex;gap:8px;align-items:center}
+.sheets-url-row input{flex:1;padding:9px 12px;border:1.5px solid #e2e8f0;border-radius:7px;font-family:'Noto Sans KR',sans-serif;font-size:12px;color:var(--body);outline:none}
+.sheets-url-row input:focus{border-color:var(--green)}
+.sheets-help{font-size:11px;color:var(--muted);line-height:1.8;margin-top:8px}
+
+/* ── 동의 목록 ── */
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+@media(max-width:580px){.stat-row{grid-template-columns:1fr 1fr}}
+.stat-card{background:#fff;border-radius:8px;padding:14px;box-shadow:0 1px 3px rgba(0,0,0,.07)}
+.stat-card .s-val{font-size:22px;font-weight:700;color:var(--ink);font-family:'Noto Serif KR',serif}
+.stat-card .s-lbl{font-size:11px;color:var(--muted);margin-top:2px}
+.s-blue .s-val{color:var(--blue)}.s-green .s-val{color:var(--green)}.s-red .s-val{color:var(--red)}
+
+/* 서비스별 탭 (목록) */
+.rec-svc-tabs{display:flex;flex-wrap:wrap;gap:6px;padding:12px 16px;border-bottom:1px solid #f1f5f9;background:#fafbfc}
+.rec-svc-tab{padding:6px 14px;font-size:12px;font-weight:500;color:var(--muted);background:#fff;border:1.5px solid #e2e8f0;border-radius:20px;cursor:pointer;transition:all .15s;font-family:'Noto Sans KR',sans-serif}
+.rec-svc-tab:hover{border-color:#93c5fd;color:var(--blue)}
+.rec-svc-tab.active{background:var(--blue);color:#fff;border-color:var(--blue);font-weight:600}
+.rec-svc-tab .cnt{display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;background:rgba(255,255,255,.3);border-radius:50%;font-size:9px;font-weight:700;margin-left:4px}
+.rec-svc-tab:not(.active) .cnt{background:#e2e8f0;color:var(--muted)}
+
+.filter-bar{display:flex;flex-wrap:wrap;gap:8px;padding:10px 14px;background:#f8fafc;border-bottom:1px solid #f1f5f9}
+.filter-bar input,.filter-bar select{padding:7px 10px;border:1.5px solid #e2e8f0;border-radius:6px;font-family:'Noto Sans KR',sans-serif;font-size:12px;color:var(--body);outline:none;background:#fff}
+.filter-bar input:focus,.filter-bar select:focus{border-color:var(--blue)}
+.data-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.data-table th{background:#f8fafc;padding:10px 12px;text-align:left;font-weight:600;color:var(--muted);border-bottom:2px solid #e2e8f0;white-space:nowrap}
+.data-table td{padding:10px 12px;border-bottom:1px solid #f1f5f9;color:var(--body);vertical-align:middle}
+.data-table tr:hover td{background:#f8fafc}
+.tag{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:600}
+.tag-yes{background:#dcfce7;color:#15803d}.tag-no{background:#fee2e2;color:#dc2626}.tag-partial{background:#fef3c7;color:#92400e}
+.thumb-wrap{display:flex;align-items:flex-start;gap:6px;flex-wrap:wrap}
+.thumb-item{display:flex;flex-direction:column;align-items:center;gap:2px}
+.thumb{width:48px;height:64px;object-fit:cover;border-radius:4px;border:1.5px solid #e2e8f0;cursor:pointer;transition:transform .15s,box-shadow .15s}
+.thumb:hover{transform:scale(1.08);box-shadow:0 4px 12px rgba(0,0,0,.18)}
+.thumb-label{font-size:9px;color:var(--muted);max-width:48px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+
+/* ── 이미지 모달 ── */
+#img-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.82);z-index:900;align-items:center;justify-content:center;flex-direction:column;gap:12px;padding:16px}
+#img-modal.show{display:flex}
+#img-modal img{max-width:min(680px,96vw);max-height:80vh;object-fit:contain;border-radius:6px;box-shadow:0 8px 40px rgba(0,0,0,.6)}
+.img-modal-bar{display:flex;gap:10px;align-items:center}
+.img-modal-name{font-size:13px;color:rgba(255,255,255,.7);max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+/* ── 로딩 ── */
+#loading-overlay{display:none;position:fixed;inset:0;background:rgba(26,26,46,.85);z-index:800;align-items:center;justify-content:center;flex-direction:column;gap:14px}
+#loading-overlay.show{display:flex}
+.loader-ring{width:44px;height:44px;border:3px solid rgba(201,168,76,.25);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loading-overlay p{font-family:'Noto Serif KR',serif;font-size:13px;color:var(--gold-l);letter-spacing:.08em}
+
+/* ── 성공 ── */
+.success-box{text-align:center;padding:36px 16px}
+.success-box .ico{width:54px;height:54px;background:#dcfce7;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:22px}
+.success-box h2{font-family:'Noto Serif KR',serif;font-size:19px;font-weight:700;color:var(--green);margin-bottom:8px}
+.success-box p{font-size:13px;color:var(--muted);line-height:1.9}
+
+/* ── 관리자 잠금 ── */
+#admin-lock{position:fixed;inset:0;background:rgba(26,26,46,.92);z-index:1000;display:flex;align-items:center;justify-content:center}
+.lock-box{background:#fff;border-radius:14px;padding:30px 26px;width:300px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+.lock-box h2{font-family:'Noto Serif KR',serif;font-size:17px;font-weight:700;color:var(--ink);margin-bottom:5px}
+.lock-box p{font-size:12px;color:var(--muted);margin-bottom:16px;line-height:1.7}
+.lock-box input{width:100%;padding:11px 13px;border:1.5px solid #e2e8f0;border-radius:8px;font-size:15px;text-align:center;letter-spacing:.3em;outline:none;font-family:'Noto Sans KR',sans-serif;margin-bottom:10px}
+.lock-box input:focus{border-color:var(--blue)}
+.lock-err{font-size:11px;color:var(--red);margin-bottom:8px;min-height:16px}
+
+/* ── 액션바 ── */
+.action-bar{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.print-guide{display:none;margin-top:10px;padding:11px 13px;background:#fffbeb;border:1px solid #fde68a;border-radius:8px;font-size:11.5px;color:#92400e;line-height:1.8}
+.print-guide strong{color:#78350f}
+
+/* ── 인쇄 ── */
+@media print{
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  body{background:#fff!important}
+  body>*:not(#print-target){display:none!important}
+  #print-target{display:block!important;padding:0;margin:0}
+  .sig-canvas{display:none!important}
+  .sig-img-print{display:block!important}
+  .btn-clr,.sig-hint,.action-bar,.print-guide,.svc-tabs{display:none!important}
+  .svc-pane{display:block!important}
+}
+#print-target{display:none}
+
+@media(max-width:660px){
+  .topbar-brand span{display:none}
+  .tab-btn{padding:0 10px;font-size:12px}
+}
+</style>
+</head>
+<body>
+
+<!-- 로딩 -->
+<div id="loading-overlay"><div class="loader-ring"></div><p id="loading-msg">처리 중…</p></div>
+
+<!-- 이미지 모달 -->
+<div id="img-modal" onclick="closeImgModal()">
+  <img id="img-modal-src" src="" alt="동의서"/>
+  <div class="img-modal-bar" onclick="event.stopPropagation()">
+    <span class="img-modal-name" id="img-modal-name"></span>
+    <button class="btn btn-green btn-sm" onclick="downloadModalImg()">⬇ 이미지 저장</button>
+    <button class="btn btn-ghost btn-sm" onclick="closeImgModal()">닫기</button>
+  </div>
+</div>
+
+<!-- 랜딩 화면 (첫 진입 시 전체 화면) -->
+<div id="landing-screen" style="
+  position:fixed;inset:0;z-index:1000;
+  background:linear-gradient(145deg,#1a1a2e 0%,#16213e 60%,#0f3460 100%);
+  display:flex;align-items:center;justify-content:center;padding:20px;overflow-y:auto;
+">
+  <div style="width:100%;max-width:440px;display:flex;flex-direction:column;gap:16px">
+
+    <!-- 기관명 -->
+    <div style="text-align:center;margin-bottom:4px">
+      <div style="margin-bottom:10px">
+        <span style="font-family:'Noto Serif KR',serif;font-size:16px;color:var(--gold-l);letter-spacing:.06em">다행복한종합사회복지관</span>
+      </div>
+      <h1 style="font-family:'Noto Serif KR',serif;font-size:22px;font-weight:700;color:#fff;line-height:1.4">개인정보 수집·이용<br>동의서 시스템</h1>
+      <p style="font-size:12px;color:rgba(255,255,255,.4);margin-top:8px;letter-spacing:.04em">Personal Information Consent System</p>
+    </div>
+
+    <!-- ★ 동의서 작성 버튼 (가장 크게, 가장 눈에 띄게) -->
+    <button onclick="goUserMode()" style="
+      width:100%;padding:20px;border:none;border-radius:14px;cursor:pointer;
+      background:linear-gradient(135deg,var(--gold) 0%,#e8a020 100%);
+      box-shadow:0 8px 24px rgba(201,168,76,.35);
+      transition:transform .15s,box-shadow .15s;
+      display:flex;align-items:center;justify-content:center;gap:12px;
+    " onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 12px 32px rgba(201,168,76,.45)'"
+       onmouseout="this.style.transform='';this.style.boxShadow='0 8px 24px rgba(201,168,76,.35)'">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#1a1a2e" stroke-width="2.5"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      <div style="text-align:left">
+        <div style="font-family:'Noto Serif KR',serif;font-size:18px;font-weight:700;color:#1a1a2e;letter-spacing:.04em">동의서 작성하기</div>
+        <div style="font-size:11px;color:rgba(26,26,46,.65);margin-top:2px">개인정보 수집·이용 동의서 작성</div>
+      </div>
+    </button>
+
+    <!-- 구분선 -->
+    <div style="display:flex;align-items:center;gap:10px">
+      <div style="flex:1;height:1px;background:rgba(255,255,255,.1)"></div>
+      <span style="font-size:11px;color:rgba(255,255,255,.25)">서비스 제공자</span>
+      <div style="flex:1;height:1px;background:rgba(255,255,255,.1)"></div>
+    </div>
+
+    <!-- 관리자 로그인 (작게) -->
+    <div id="login-area" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);border-radius:12px;padding:18px 20px">
+      <div style="font-size:12px;color:rgba(255,255,255,.5);margin-bottom:10px;display:flex;align-items:center;gap:6px">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        관리자 로그인
+      </div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="password" id="pw-input" placeholder="비밀번호 입력" maxlength="20"
+          style="flex:1;padding:10px 12px;border:1.5px solid rgba(255,255,255,.15);border-radius:8px;background:rgba(255,255,255,.08);color:#fff;font-family:'Noto Sans KR',sans-serif;font-size:13px;outline:none"
+          onfocus="this.style.borderColor='var(--gold)'" onblur="this.style.borderColor='rgba(255,255,255,.15)'"
+        />
+        <button onclick="checkPw()" style="padding:10px 16px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:8px;color:#fff;font-family:'Noto Sans KR',sans-serif;font-size:13px;cursor:pointer;white-space:nowrap;transition:background .15s"
+          onmouseover="this.style.background='rgba(255,255,255,.2)'" onmouseout="this.style.background='rgba(255,255,255,.12)'">
+          로그인
+        </button>
+      </div>
+      <div class="lock-err" id="pw-err" style="margin-top:6px;min-height:16px;font-size:11px;color:#f87171"></div>
+    </div>
+  </div>
+</div>
+
+<!-- 탑바 -->
+<div class="topbar">
+  <div class="topbar-brand" style="height:50px">
+    <span style="font-family:'Noto Serif KR',serif;font-size:14px;color:var(--gold-l);letter-spacing:.06em">다행복한종합사회복지관</span>
+  </div>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchPage('page-consent')" id="tab-consent">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+      동의서 작성
+    </button>
+    <!-- 관리자 전용 탭 (로그인 시에만 표시) -->
+    <button class="tab-btn admin-only" onclick="switchPage('page-services')" id="tab-services" style="display:none">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/></svg>
+      서비스 관리
+    </button>
+    <button class="tab-btn admin-only" onclick="switchPage('page-records')" id="tab-records" style="display:none">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      동의 목록
+    </button>
+    <!-- 로그인/로그아웃 버튼 -->
+    <button id="btn-login" onclick="showLanding()" class="tab-btn" style="color:rgba(255,255,255,.5);padding:0 14px;font-size:12px;gap:5px">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+      관리자 로그인
+    </button>
+    <button id="btn-logout" onclick="doLogout()" class="tab-btn" style="display:none;color:#fca5a5;padding:0 14px;font-size:12px;gap:5px">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+      로그아웃
+    </button>
+  </div>
+</div>
+
+<!-- ════ PAGE 1: 동의서 작성 (이용자) ════ -->
+<div class="page active" id="page-consent">
+
+  <!-- 단계 표시줄 -->
+  <div class="step-bar">
+    <div class="step-item">
+      <div class="step-circle active" id="sc1">1</div>
+      <span class="step-label active" id="sl1">서비스 선택</span>
+    </div>
+    <div class="step-divider" id="sd1"></div>
+    <div class="step-item">
+      <div class="step-circle idle" id="sc2">2</div>
+      <span class="step-label" id="sl2">정보 입력</span>
+    </div>
+    <div class="step-divider" id="sd2"></div>
+    <div class="step-item">
+      <div class="step-circle idle" id="sc3">3</div>
+      <span class="step-label" id="sl3">동의서 작성</span>
+    </div>
+  </div>
+
+  <!-- STEP 1: 서비스 선택 -->
+  <div id="step1-area">
+    <div class="card">
+      <div class="card-head">
+        <h2>이용하실 서비스를 선택해 주세요</h2>
+        <span style="font-size:11px;color:var(--muted)">1개만 선택 가능합니다</span>
+      </div>
+      <div class="card-body">
+        <div class="svc-select-grid" id="svc-select-grid"></div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:flex-end">
+      <button class="btn btn-primary btn-lg" onclick="goStep2()">
+        다음 단계 — 정보 입력
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- STEP 2: 개인정보 입력 -->
+  <div id="step2-area" style="display:none">
+    <div class="card">
+      <div class="card-head">
+        <h2>개인정보 입력</h2>
+        <div id="step2-chips" class="selected-svc-chips"></div>
+      </div>
+      <div class="card-body">
+        <div class="form-row cols3">
+          <div class="form-group"><label>성명 *</label><input type="text" id="u-name" placeholder="홍길동" maxlength="20" oninput="updateSigFields()"/></div>
+          <div class="form-group"><label>생년월일</label><input type="text" id="u-dob" placeholder="1990-01-01" maxlength="12"/></div>
+          <div class="form-group"><label>연락처 *</label><input type="tel" id="u-phone" placeholder="010-0000-0000" maxlength="15"/></div>
+        </div>
+      </div>
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+      <button class="btn btn-ghost" onclick="goStep1()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+        이전 — 서비스 재선택
+      </button>
+      <button class="btn btn-primary btn-lg" onclick="goStep3()">
+        다음 단계 — 동의서 작성
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- STEP 3: 동의서 작성 -->
+  <div id="step3-area" style="display:none">
+    <div class="card">
+      <div class="card-body" style="padding-bottom:10px">
+        <div class="svc-tabs" id="consent-svc-tabs"></div>
+        <div id="consent-svc-panes"></div>
+      </div>
+    </div>
+    <div class="action-bar">
+      <button class="btn btn-ghost" onclick="goStep2FromStep3()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+        이전
+      </button>
+      <button class="btn btn-ghost" onclick="printAllConsents()">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 01-2-2v-5a2 2 0 012-2h16a2 2 0 012 2v5a2 2 0 01-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        PDF 저장
+      </button>
+      <button class="btn btn-green btn-lg" onclick="submitAllConsents()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        동의 제출 완료
+      </button>
+    </div>
+    <div class="print-guide" id="print-guide">
+      📋 <strong>PDF 저장 방법</strong> — 인쇄 창에서 <strong>"PDF로 저장"</strong>을 선택하세요.<br>
+      <span style="font-size:10.5px;opacity:.75">Chrome·Edge: 대상 → "PDF로 저장" / Safari: PDF 버튼 → "PDF로 저장"</span>
+    </div>
+  </div>
+
+  <!-- 제출 완료 -->
+  <div id="submit-success" style="display:none">
+    <div class="card"><div class="card-body">
+      <div class="success-box">
+        <div class="ico">✅</div>
+        <h2>동의서 제출이 완료되었습니다</h2>
+        <p id="submit-summary"></p>
+        <div style="margin-top:18px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+          <button class="btn btn-ghost" onclick="printAllConsents()">PDF 저장</button>
+          <button class="btn btn-primary" onclick="resetConsentPage()">새 동의서 작성</button>
+        </div>
+      </div>
+    </div></div>
+  </div>
+</div>
+
+<!-- ════ PAGE 2: 서비스 관리 ════ -->
+<div class="page" id="page-services">
+  <div class="sheets-panel" style="display:none">
+    <div class="sp-head">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
+      <h3>Google Sheets 연동</h3>
+      <span class="sp-status disconnected" id="sheets-status-badge">● 미연결</span>
+    </div>
+    <div class="sheets-url-row">
+      <input type="text" id="sheets-webhook-url" placeholder="Google Apps Script 웹 앱 URL"/>
+      <button class="btn btn-green btn-sm" onclick="saveAndTestSheets()">저장 &amp; 테스트</button>
+      <button class="btn btn-ghost btn-sm" onclick="clearSheetsUrl()">초기화</button>
+    </div>
+    <div class="sheets-help">
+      📌 <a href="#" onclick="showSheetsGuide();return false" style="color:var(--blue);text-decoration:none">Google Apps Script 설정 가이드 보기 ▼</a>
+    </div>
+    <div id="sheets-guide" style="display:none;margin-top:10px;padding:13px 15px;background:#fff;border-radius:6px;border:1px solid #bbf7d0;font-size:11.5px;color:var(--body);line-height:2">
+      <strong style="color:var(--green)">📋 Apps Script 설정 (form POST 방식)</strong><br><br>
+      <strong>① Google Sheets</strong> → 확장 프로그램 → Apps Script → 기존 코드 전체 삭제 후 아래 코드 붙여넣기 → 저장<br>
+      <pre style="background:#f8fafc;padding:9px;border-radius:4px;font-size:10px;overflow-x:auto;margin:5px 0;line-height:1.7">function doPost(e) {
+  try {
+    var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow(['제출일시','서비스명','성명','연락처','생년월일',
+                       '수집이용','제3자제공','고유식별','마케팅']);
+    }
+    var p = e.parameter;
+    sheet.appendRow([p.submittedAt||'', p.serviceName||'', p.name||'',
+      p.phone||'', p.dob||'', p.collection||'',
+      p.thirdParty||'', p.uniqueId||'', p.marketing||'']);
+  } catch(err) { Logger.log(err.toString()); }
+  return HtmlService.createHtmlOutput('');
+}
+function doGet(e) { return HtmlService.createHtmlOutput('OK'); }</pre>
+      <strong>② 배포 → 새 배포 → 웹 앱</strong> / 실행 계정: <strong>나</strong> / 액세스: <strong>모든 사용자</strong> → 배포 → URL 복사<br>
+      <strong>③ URL을 위 입력란에 붙여넣기</strong> → 저장 &amp; 테스트<br>
+      <div style="background:#fef9c3;padding:7px 9px;border-radius:4px;font-size:10.5px;color:#78350f;margin-top:6px">⚠️ 코드 수정 후에는 반드시 <strong>새 배포</strong>를 다시 생성하세요.</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head">
+      <h2>서비스 목록 <span class="badge" id="svc-count-badge">0</span></h2>
+      <button class="btn btn-primary" onclick="openNewServiceModal()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        서비스 추가
+      </button>
+    </div>
+    <div class="card-body"><div class="service-list" id="service-list-el"></div></div>
+  </div>
+</div>
+
+<!-- ════ PAGE 3: 동의 목록 ════ -->
+<div class="page" id="page-records">
+  <div class="stat-row">
+    <div class="stat-card"><div class="s-val" id="stat-total">0</div><div class="s-lbl">전체 제출</div></div>
+    <div class="stat-card s-blue"><div class="s-val" id="stat-full">0</div><div class="s-lbl">전체 동의</div></div>
+    <div class="stat-card s-red"><div class="s-val" id="stat-partial">0</div><div class="s-lbl">일부 동의</div></div>
+    <div class="stat-card s-green"><div class="s-val" id="stat-today">0</div><div class="s-lbl">오늘 제출</div></div>
+  </div>
+  <div class="card">
+    <div class="card-head">
+      <h2>동의 제출 목록</h2>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ CSV</button>
+        <button class="btn btn-red btn-sm" onclick="clearAllRecords()">전체 삭제</button>
+      </div>
+    </div>
+    <!-- 서비스별 탭 -->
+    <div class="rec-svc-tabs" id="rec-svc-tabs"></div>
+    <div class="filter-bar">
+      <input type="text" id="search-input" placeholder="이름·연락처 검색…" oninput="renderRecords()" style="min-width:120px"/>
+      <select id="filter-agree" onchange="renderRecords()">
+        <option value="">동의 여부 전체</option>
+        <option value="full">전체 동의</option>
+        <option value="partial">일부 동의</option>
+        <option value="none">미동의</option>
+      </select>
+    </div>
+    <div style="overflow-x:auto">
+      <table class="data-table">
+        <thead><tr>
+          <th>#</th><th id="th-service">서비스명</th><th>성명</th><th>연락처</th>
+          <th>동의여부</th>
+          <th>동의서 이미지
+            <button class="btn btn-primary btn-sm" onclick="bulkDownloadImages()" style="margin-left:8px;font-size:10px;padding:3px 8px;vertical-align:middle">
+              ⬇ 일괄다운로드
+            </button>
+          </th>
+          <th>제출일시</th><th>관리</th>
+        </tr></thead>
+        <tbody id="records-tbody"></tbody>
+      </table>
+    </div>
+    <div id="records-empty" style="display:none;padding:36px;text-align:center;font-size:13px;color:var(--muted)">제출된 동의서가 없습니다.</div>
+  </div>
+</div>
+
+<!-- ════ 서비스 편집 모달 ════ -->
+<div id="svc-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;overflow-y:auto;padding:16px">
+  <div style="background:#fff;border-radius:12px;max-width:800px;margin:0 auto;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.3)">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:15px 20px;border-bottom:1px solid #f1f5f9;background:#fafbfc">
+      <h2 style="font-family:'Noto Serif KR',serif;font-size:15px;font-weight:700;color:var(--ink)" id="modal-title">서비스 추가</h2>
+      <button onclick="closeSvcModal()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--muted)">✕</button>
+    </div>
+    <div style="padding:20px;max-height:78vh;overflow-y:auto">
+      <div style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px">기본 정보</div>
+      <div class="form-row">
+        <div class="form-group"><label>서비스명 *</label><input type="text" id="m-name" placeholder="예: 건강교실"/></div>
+        <div class="form-group"><label>기관명</label><input type="text" id="m-org" placeholder="다행복한종합사회복지관"/></div>
+      </div>
+      <div class="form-row cols1" style="margin-top:8px">
+        <div class="form-group"><label>서문</label><textarea id="m-intro" rows="3" placeholder="귀하의 개인정보는 「개인정보 보호법」…"></textarea></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:16px;margin-top:10px;flex-wrap:wrap">
+        <label class="toggle-wrap"><span class="toggle"><input type="checkbox" id="m-active" checked/><span class="toggle-slider"></span></span><span class="toggle-lbl">서비스 활성화</span></label>
+        <label class="toggle-wrap"><span class="toggle"><input type="checkbox" id="m-guardian"/><span class="toggle-slider"></span></span><span class="toggle-lbl">법정대리인 동의 포함</span></label>
+        <label class="toggle-wrap"><span class="toggle"><input type="checkbox" id="m-unique-id"/><span class="toggle-slider"></span></span><span class="toggle-lbl">고유식별정보 포함</span></label>
+        <label class="toggle-wrap"><span class="toggle"><input type="checkbox" id="m-marketing"/><span class="toggle-slider"></span></span><span class="toggle-lbl">마케팅 동의 포함</span></label>
+      </div>
+      <div style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin:16px 0 8px;display:flex;align-items:center;justify-content:space-between">
+        <span>개인정보 수집·이용 항목</span>
+        <button class="btn btn-ghost btn-sm" onclick="addCollectionRow()">+ 행 추가</button>
+      </div>
+      <table class="table-editor"><thead><tr><th style="width:30%">수집·이용 목적</th><th style="width:38%">수집 항목</th><th style="width:24%">보유·이용 기간</th><th style="width:8%"></th></tr></thead><tbody id="collection-tbody"></tbody></table>
+      <div style="font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.1em;text-transform:uppercase;margin:16px 0 8px;display:flex;align-items:center;justify-content:space-between">
+        <span>제3자 제공 항목</span>
+        <button class="btn btn-ghost btn-sm" onclick="addThirdPartyRow()">+ 행 추가</button>
+      </div>
+      <table class="table-editor"><thead><tr><th style="width:20%">제공받는 자</th><th style="width:26%">제공 목적</th><th style="width:28%">제공 항목</th><th style="width:18%">보유기간</th><th style="width:8%"></th></tr></thead><tbody id="thirdparty-tbody"></tbody></table>
+    </div>
+    <div style="padding:13px 20px;border-top:1px solid #f1f5f9;display:flex;justify-content:flex-end;gap:8px;background:#fafbfc">
+      <button class="btn btn-ghost" onclick="closeSvcModal()">취소</button>
+      <button class="btn btn-primary" onclick="saveService()">저장</button>
+    </div>
+  </div>
+</div>
+
+<div id="print-target"></div>
+
+<script>
+/* ════ 상태 ════ */
+const ADMIN_PW = '1234';
+let services     = [];
+let records      = {};   // { serviceId: [ record, ... ] }
+let selectedSvcs = [];   // 이용자가 선택한 서비스 id 배열
+let sigPads      = {};
+let sheetsUrl    = localStorage.getItem('sheetsUrl') || '';
+let currentRecSvcId = 'all'; // 동의목록 현재 서비스 탭
+let editingSvcId = null;
+let _currentImgUrl = '', _currentImgName = '';
+
+/* ════ 관리자 인증 ════ */
+/* ════ 로그인 상태 ════ */
+let isAdmin = false;
+
+function showLanding(){
+  document.getElementById('landing-screen').style.display='flex';
+  document.getElementById('pw-input').value='';
+  document.getElementById('pw-err').textContent='';
+}
+
+function goUserMode(){
+  document.getElementById('landing-screen').style.display='none';
+  switchPage('page-consent');
+}
+
+function checkPw(){
+  if(document.getElementById('pw-input').value===ADMIN_PW){
+    isAdmin = true;
+    document.getElementById('landing-screen').style.display='none';
+    // 관리자 탭 표시
+    document.querySelectorAll('.admin-only').forEach(el=>el.style.display='flex');
+    document.getElementById('btn-login').style.display='none';
+    document.getElementById('btn-logout').style.display='flex';
+    renderServiceList(); renderRecords(); updateStats(); updateSheetsUI();
+    switchPage('page-services');
+  } else {
+    document.getElementById('pw-err').textContent='비밀번호가 올바르지 않습니다.';
+    document.getElementById('pw-input').value='';
+  }
+}
+
+function doLogout(){
+  isAdmin = false;
+
+  // 1. 관리자 탭 먼저 숨김 (switchPage보다 먼저)
+  document.querySelectorAll('.admin-only').forEach(el=>{
+    el.style.display = 'none';
+    el.classList.remove('active');
+  });
+
+  // 2. 로그인/로그아웃 버튼 전환
+  document.getElementById('btn-login').style.display  = 'flex';
+  document.getElementById('btn-logout').style.display = 'none';
+
+  // 3. 동의서 작성 탭으로 이동
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-consent').classList.add('active');
+  document.getElementById('tab-consent').classList.add('active');
+}
+
+document.getElementById('pw-input').addEventListener('keydown',e=>{if(e.key==='Enter')checkPw();});
+
+/* ════ 탭 전환 ════ */
+function switchPage(id){
+  // 비로그인 상태에서 관리자 페이지 접근 차단
+  if(!isAdmin && (id==='page-services' || id==='page-records')){
+    alert('관리자 로그인이 필요합니다.');
+    return;
+  }
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  const m={['page-consent']:'tab-consent',['page-services']:'tab-services',['page-records']:'tab-records'};
+  const tabEl = document.getElementById(m[id]);
+  if(tabEl && tabEl.style.display !== 'none') tabEl.classList.add('active');
+  if(id==='page-records'){renderRecords();updateStats();}
+  if(id==='page-services'){renderServiceList();}
+}
+
+/* ════ 단계 관리 ════ */
+function setStep(n){
+  [1,2,3].forEach(i=>{
+    const sc=document.getElementById('sc'+i);
+    const sl=document.getElementById('sl'+i);
+    if(i<n){ sc.className='step-circle done'; sc.textContent='✓'; sl.className='step-label done'; }
+    else if(i===n){ sc.className='step-circle active'; sc.textContent=i; sl.className='step-label active'; }
+    else{ sc.className='step-circle idle'; sc.textContent=i; sl.className='step-label'; }
+  });
+  [1,2].forEach(i=>{
+    const sd=document.getElementById('sd'+i);
+    sd.className='step-divider'+(i<n?' done':'');
+  });
+  document.getElementById('step1-area').style.display = n===1?'block':'none';
+  document.getElementById('step2-area').style.display = n===2?'block':'none';
+  document.getElementById('step3-area').style.display = n===3?'block':'none';
+  document.getElementById('submit-success').style.display='none';
+}
+
+/* ════ STEP 1: 서비스 선택 ════ */
+function renderServiceSelectGrid(){
+  const active = services.filter(s=>s.active);
+  const grid = document.getElementById('svc-select-grid');
+  if(!active.length){
+    grid.innerHTML='<div class="select-none-msg">등록된 활성 서비스가 없습니다.<br>관리자에게 문의해 주세요.</div>';
+    return;
+  }
+  // 현재 선택값 유지 (단일 선택)
+  const curSel = selectedSvcs[0] || null;
+  grid.innerHTML = active.map(s=>{
+    const sel = s.id === curSel;
+    const tags = [
+      s.guardian?'<span class="sc-tag sc-tag-b">법정대리인</span>':'',
+      s.uniqueId?'<span class="sc-tag sc-tag-g">고유식별</span>':'',
+      s.marketing?'<span class="sc-tag sc-tag-y">마케팅</span>':''
+    ].filter(Boolean).join('');
+    return `<div class="svc-select-card${sel?' selected':''}" id="sc-card-${s.id}" onclick="selectSvc('${s.id}')">
+      <div class="chk">${sel?'✓':''}</div>
+      <div class="sc-name">${s.name}</div>
+      <div class="sc-org">${s.org||'다행복한종합사회복지관'}</div>
+      ${tags?`<div class="sc-tags">${tags}</div>`:''}
+    </div>`;
+  }).join('');
+}
+
+/* 단일 선택 — 클릭하면 해당 서비스 하나만 선택, 이미 선택된 것 클릭 시 해제 */
+function selectSvc(id){
+  const alreadySel = selectedSvcs[0] === id;
+  // 이전 선택 카드 해제
+  if(selectedSvcs[0]){
+    const prev = document.getElementById('sc-card-'+selectedSvcs[0]);
+    if(prev){ prev.classList.remove('selected'); prev.querySelector('.chk').textContent=''; }
+  }
+  if(alreadySel){
+    selectedSvcs = [];
+  } else {
+    selectedSvcs = [id];
+    const card = document.getElementById('sc-card-'+id);
+    if(card){ card.classList.add('selected'); card.querySelector('.chk').textContent='✓'; }
+  }
+}
+
+function goStep2(){
+  if(!selectedSvcs.length){alert('서비스를 선택해 주세요.');return;}
+  // 선택된 서비스 칩 표시 (1개)
+  const chips = selectedSvcs.map(id=>{
+    const s=services.find(x=>x.id===id);
+    return s?`<span class="svc-chip">📋 ${s.name}</span>`:'';
+  }).join('');
+  document.getElementById('step2-chips').innerHTML = chips;
+  setStep(2);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function goStep1(){
+  document.getElementById('consent-svc-tabs').style.display='';
+  setStep(1);
+  renderServiceSelectGrid();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ════ STEP 2: 정보 입력 ════ */
+function goStep3(){
+  const name=document.getElementById('u-name').value.trim();
+  const phone=document.getElementById('u-phone').value.trim();
+  if(!name){alert('성명을 입력해 주세요.');document.getElementById('u-name').focus();return;}
+  if(!phone){alert('연락처를 입력해 주세요.');document.getElementById('u-phone').focus();return;}
+
+  const selected = services.filter(s=>selectedSvcs.includes(s.id));
+  if(!selected.length){alert('선택된 서비스가 없습니다.');goStep1();return;}
+
+  const tabsEl=document.getElementById('consent-svc-tabs');
+  const panesEl=document.getElementById('consent-svc-panes');
+  tabsEl.innerHTML=''; panesEl.innerHTML=''; sigPads={};
+
+  // 단일 서비스이므로 탭 없이 동의서 바로 표시
+  selected.forEach((svc)=>{
+    const paneId='pane-'+svc.id; const cid='sig-'+svc.id;
+    // 탭은 숨김 (단일 선택이므로 불필요)
+    tabsEl.style.display='none';
+    const pane=document.createElement('div');
+    pane.className='svc-pane active'; pane.id=paneId;
+    pane.innerHTML=buildConsentHTML(svc,cid);
+    panesEl.appendChild(pane);
+  });
+
+  setStep(3);
+  selected.forEach(svc=>initSigPad('sig-'+svc.id));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function goStep2FromStep3(){
+  document.getElementById('consent-svc-tabs').style.display='';
+  setStep(2);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function updateSigFields(){
+  document.querySelectorAll('.sig-name-field').forEach(el=>{el.textContent=document.getElementById('u-name').value.trim()||'';});
+}
+
+/* ════ 동의서 HTML ════ */
+function buildConsentHTML(svc, canvasId){
+  const today=new Date();
+  const dateStr=`${today.getFullYear()}년 ${String(today.getMonth()+1).padStart(2,'0')}월 ${String(today.getDate()).padStart(2,'0')}일`;
+  const name=document.getElementById('u-name').value.trim();
+  const dob=document.getElementById('u-dob').value.trim();
+  const docNo=`PI-${today.getFullYear()}${String(today.getMonth()+1).padStart(2,'0')}${String(today.getDate()).padStart(2,'0')}-${Math.floor(Math.random()*9000+1000)}`;
+  let n=0;
+  let h=`<div class="doc-preview" id="doc-${svc.id}">
+    <div class="dp-header-row"><span class="dp-org">${svc.org||'다행복한종합사회복지관'}</span><span class="dp-docno">문서번호: ${docNo}</span></div>
+    <div class="dp-title"><h1>개인정보 수집 및 이용에 관한 동의서</h1><p>${svc.name}</p></div>
+    <div class="dp-intro">${(svc.intro||'귀하의 개인정보는 「개인정보 보호법」 제15조 및 제17조에 따라 수집·이용됩니다.').replace(/\n/g,'<br>')}</div>`;
+  if(svc.collection.length){n++;h+=`<div class="dp-section"><div class="dp-sec-title"><span class="dp-sec-num">${n}</span>개인정보 수집·이용 내역</div><div class="dp-sec-body"><table class="dp-table"><thead><tr><th>수집·이용 목적</th><th>수집 항목</th><th>보유·이용 기간</th></tr></thead><tbody>${svc.collection.map(r=>`<tr><td>${r.purpose.replace(/\n/g,'<br>')}</td><td>${r.items.replace(/\n/g,'<br>')}</td><td>${r.retention}</td></tr>`).join('')}</tbody></table><div class="dp-agree"><div class="dp-agree-check">✓</div><span>위 개인정보 수집·이용에 동의하십니까? <span class="sub">(필수)</span></span></div><div class="consent-choice-row"><div class="choice-opts"><label class="choice-opt"><input type="radio" name="col-${svc.id}" value="yes" checked/> □ 동의</label><label class="choice-opt"><input type="radio" name="col-${svc.id}" value="no"/> □ 미동의</label></div></div></div></div>`;}
+  if(svc.thirdParty.length){n++;h+=`<div class="dp-section"><div class="dp-sec-title"><span class="dp-sec-num">${n}</span>개인정보 제3자 제공 내역</div><div class="dp-sec-body"><table class="dp-table"><thead><tr><th>제공받는 자</th><th>제공 목적</th><th>제공 항목</th><th>보유·이용 기간</th></tr></thead><tbody>${svc.thirdParty.map(r=>`<tr><td>${r.receiver.replace(/\n/g,'<br>')}</td><td>${r.purpose.replace(/\n/g,'<br>')}</td><td>${r.items.replace(/\n/g,'<br>')}</td><td>${r.retention}</td></tr>`).join('')}</tbody></table><div class="dp-agree"><div class="dp-agree-check">✓</div><span>위 제3자 제공에 동의하십니까? <span class="sub">(필수)</span></span></div><div class="consent-choice-row"><div class="choice-opts"><label class="choice-opt"><input type="radio" name="tp-${svc.id}" value="yes" checked/> □ 동의</label><label class="choice-opt"><input type="radio" name="tp-${svc.id}" value="no"/> □ 미동의</label></div></div></div></div>`;}
+  if(svc.uniqueId){n++;h+=`<div class="dp-section"><div class="dp-sec-title"><span class="dp-sec-num">${n}</span>고유식별정보 수집·이용 동의</div><div class="dp-sec-body"><table class="dp-table"><colgroup><col style="width:27%"><col></colgroup><tr><td class="col-lbl">이용 목적</td><td>프로그램별 외부활동 시 보험가입을 위함</td></tr><tr><td class="col-lbl">수집 항목</td><td>주민등록번호</td></tr><tr><td class="col-lbl">보유·이용 기간</td><td>3년 또는 요청 시 파기</td></tr></table><div class="dp-agree"><div class="dp-agree-check">✓</div><span>고유식별정보 처리에 동의하십니까? <span class="sub">(선택)</span></span></div><div class="consent-choice-row"><div class="choice-opts"><label class="choice-opt"><input type="radio" name="uid-${svc.id}" value="yes" checked/> □ 동의함</label><label class="choice-opt"><input type="radio" name="uid-${svc.id}" value="no"/> □ 동의하지 않음</label></div></div><div style="font-size:10px;color:var(--muted);padding:7px 11px;background:#fafbfc">※ 고유식별정보: 주민등록번호, 여권번호, 외국인등록번호, 운전면허번호</div></div></div>`;}
+  if(svc.marketing){n++;h+=`<div class="dp-section"><div class="dp-sec-title"><span class="dp-sec-num">${n}</span>마케팅·홍보 활용 동의</div><div class="dp-sec-body"><div class="dp-agree" style="flex-direction:column;align-items:flex-start;gap:5px"><div style="display:flex;align-items:center;gap:7px"><div class="dp-agree-check">✓</div><span style="font-size:11px;font-weight:600;color:var(--ink)">${svc.org||'다행복한종합사회복지관'}의 홍보를 위한 고객만족도 조사 및 마케팅 홍보물 등과 관련하여 귀하의 개인정보(이름, 연락처, 활동사진 또는 영상게시)를 이용하는 데 동의하십니까?</span></div><div style="font-size:10px;color:var(--muted);margin-left:23px">동의 거부 시 이벤트 및 행사 등 서비스 이용 및 정보제공이 제한됩니다.</div></div><div class="mkt-channels" id="mkt-${svc.id}"><span style="font-size:11px;font-weight:600;color:var(--ink);margin-right:6px">동의함:</span><label class="mkt-ch"><input type="checkbox" name="mkt-sms-${svc.id}"/> SMS</label><label class="mkt-ch"><input type="checkbox" name="mkt-call-${svc.id}"/> 전화</label><label class="mkt-ch"><input type="checkbox" name="mkt-email-${svc.id}"/> 이메일</label><label class="mkt-ch"><input type="checkbox" name="mkt-post-${svc.id}"/> 우편</label><span style="margin:0 6px;color:#e2e8f0">|</span><label class="mkt-ch"><input type="radio" name="mkt-${svc.id}" value="no"/> □ 동의하지 않음</label></div></div></div>`;}
+  h+=`<div class="dp-sig-area"><div class="dp-sig-head">서명란 (Signature)</div><div class="dp-sig-body">
+    <div class="dp-sig-row">
+      <div class="dp-sig-field"><span class="lbl">성명</span><div class="val sig-name-field">${name}</div></div>
+      <div class="dp-sig-field"><span class="lbl">생년월일</span><div class="val">${dob||'미입력'}</div></div>
+      <div class="dp-sig-field"><span class="lbl">서명일</span><div class="val">${dateStr}</div></div>
+    </div>
+    <div class="sig-pad-wrap">
+      <div class="sig-pad-label-row"><span class="lbl">본인 서명</span><button class="btn-clr" onclick="clearSig('${canvasId}')">서명 지우기</button></div>
+      <canvas class="sig-canvas" id="${canvasId}" width="1200" height="200"></canvas>
+      <img class="sig-img-print" id="sigimg-${svc.id}" alt="서명"/>
+      <p class="sig-hint" id="sighint-${canvasId}">✏️ 마우스 또는 손가락으로 서명해 주세요</p>
+    </div>`;
+  if(svc.guardian){h+=`
+    <div class="dp-guardian">
+
+      <!-- 헤더 -->
+      <div class="dp-guardian-head">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+        <span class="gt">만 14세 미만 아동 — 법정대리인 동의</span>
+      </div>
+
+      <!-- 동의 체크박스 -->
+      <div class="guardian-agree-row">
+        <span class="ga-label">개인정보 수집·이용에 대한 법정대리인 동의</span>
+        <div class="guardian-opts">
+          <label class="guardian-opt agree-yes">
+            <input type="radio" name="guardian-agree-${svc.id}" value="yes"/>
+            <span>✅ 동의함</span>
+          </label>
+          <label class="guardian-opt agree-no">
+            <input type="radio" name="guardian-agree-${svc.id}" value="no"/>
+            <span>❌ 동의안함</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- 법정대리인 정보 입력 -->
+      <div class="dp-guardian-body">
+        <div class="dp-guardian-row">
+          <div class="dp-guardian-field">
+            <span class="lbl">법정대리인 성명</span>
+            <input class="guardian-input" type="text"
+                   id="guardian-name-${svc.id}"
+                   placeholder="성명을 입력하세요" maxlength="20"/>
+          </div>
+          <div class="dp-guardian-field">
+            <span class="lbl">아동과의 관계</span>
+            <input class="guardian-input" type="text"
+                   id="guardian-rel-${svc.id}"
+                   placeholder="예: 부, 모, 조부모" maxlength="10"/>
+          </div>
+          <div class="dp-guardian-field">
+            <span class="lbl">서명일</span>
+            <div class="val">${dateStr}</div>
+          </div>
+        </div>
+        <div class="dp-guardian-field" style="margin-bottom:0">
+          <span class="lbl">연락처</span>
+          <input class="guardian-input" type="tel"
+                 id="guardian-phone-${svc.id}"
+                 placeholder="010-0000-0000" maxlength="15"/>
+        </div>
+      </div>
+
+      <!-- 안내 -->
+      <div class="dp-guardian-notice">
+        ※ 만 14세 미만인 아동의 경우 반드시 법정대리인의 동의가 필요합니다.<br>
+        ※ 법정대리인 확인을 위해 신분증과 가족관계증명서 또는 등본을 지참하셔야 합니다.
+      </div>
+    </div>`;
+  }
+  h+=`<div class="dp-sig-notice">※ 본 동의서는 「개인정보 보호법」 제15조, 제17조 및 제22조에 의거하여 작성되었습니다.<br>※ 귀하는 동의를 거부할 권리가 있으며, 동의 거부 시 일부 서비스 이용이 제한될 수 있습니다.<br>※ 본인은 위의 내용을 충분히 읽고 이해하였으며, 이에 자유로운 의사로 동의합니다.</div></div></div></div>`;
+  return h;
+}
+
+/* ════ 서명 패드 ════ */
+function initSigPad(cid){
+  const canvas=document.getElementById(cid); if(!canvas)return;
+  const ctx=canvas.getContext('2d');
+  ctx.strokeStyle='#1a1a2e';ctx.lineWidth=3;ctx.lineCap='round';ctx.lineJoin='round';ctx.fillStyle='#1a1a2e';
+  sigPads[cid]={ctx,hasSig:false,isDrawing:false,lastX:0,lastY:0};
+  const xy=e=>{const r=canvas.getBoundingClientRect();return{x:(e.clientX-r.left)*(canvas.width/r.width),y:(e.clientY-r.top)*(canvas.height/r.height)};};
+  const onDown=e=>{const p=sigPads[cid];const c=xy(e);p.isDrawing=true;p.lastX=c.x;p.lastY=c.y;p.ctx.beginPath();p.ctx.arc(c.x,c.y,1.5,0,Math.PI*2);p.ctx.fill();};
+  const onMove=e=>{const p=sigPads[cid];if(!p.isDrawing)return;const c=xy(e);p.ctx.beginPath();p.ctx.moveTo(p.lastX,p.lastY);p.ctx.lineTo(c.x,c.y);p.ctx.stroke();p.lastX=c.x;p.lastY=c.y;if(!p.hasSig){p.hasSig=true;canvas.classList.add('has-sig');const h=document.getElementById('sighint-'+cid);if(h)h.style.visibility='hidden';markTabSigned(cid);}};
+  const onUp=()=>{sigPads[cid].isDrawing=false;};
+  canvas.addEventListener('mousedown',onDown);canvas.addEventListener('mousemove',onMove);canvas.addEventListener('mouseup',onUp);canvas.addEventListener('mouseleave',onUp);
+  canvas.addEventListener('touchstart',e=>{e.preventDefault();onDown(e.touches[0]);},{passive:false});
+  canvas.addEventListener('touchmove',e=>{e.preventDefault();const p=sigPads[cid];if(!p.isDrawing)return;const c=xy(e.touches[0]);p.ctx.beginPath();p.ctx.moveTo(p.lastX,p.lastY);p.ctx.lineTo(c.x,c.y);p.ctx.stroke();p.lastX=c.x;p.lastY=c.y;if(!p.hasSig){p.hasSig=true;canvas.classList.add('has-sig');const h=document.getElementById('sighint-'+cid);if(h)h.style.visibility='hidden';markTabSigned(cid);}},{passive:false});
+  canvas.addEventListener('touchend',e=>{e.preventDefault();onUp();},{passive:false});
+}
+
+function markTabSigned(cid){
+  // 단일 동의서이므로 탭 처리 불필요 (오류 방지용 유지)
+}
+
+function clearSig(cid){
+  const p=sigPads[cid];if(!p)return;
+  const canvas=document.getElementById(cid);
+  p.ctx.clearRect(0,0,canvas.width,canvas.height);
+  p.ctx.strokeStyle='#1a1a2e';p.ctx.lineWidth=3;p.ctx.lineCap='round';p.ctx.lineJoin='round';p.ctx.fillStyle='#1a1a2e';
+  p.hasSig=false; canvas.classList.remove('has-sig');
+  const h=document.getElementById('sighint-'+cid);if(h)h.style.visibility='';
+  const svcId=cid.replace('sig-','');
+  const tab=document.getElementById('svc-tab-'+svcId);
+  if(tab) tab.classList.remove('signed');
+}
+
+/* ════ 이미지 캡처 ════ */
+async function captureConsentImages(selected){
+  const images=[];
+  for(const svc of selected){
+    const cid='sig-'+svc.id;
+    const sigCanvas=document.getElementById(cid);
+    const sigPad=sigPads[cid];
+    const docEl=document.getElementById('doc-'+svc.id);
+    if(!docEl){images.push({svcId:svc.id,svcName:svc.name,dataUrl:''});continue;}
+    try{
+      const sigImgEl=document.getElementById('sigimg-'+svc.id);
+      const hintEl=document.getElementById('sighint-'+cid);
+      if(sigCanvas&&sigImgEl&&sigPad&&sigPad.hasSig){
+        sigImgEl.src=sigCanvas.toDataURL('image/png');
+        sigCanvas.style.display='none';
+        sigImgEl.style.display='block';
+        if(hintEl)hintEl.style.display='none';
+      }
+      await new Promise(r=>setTimeout(r,80));
+      const cvs=await html2canvas(docEl,{scale:2,useCORS:true,allowTaint:true,backgroundColor:'#faf7f0',logging:false,scrollX:0,scrollY:0,windowWidth:docEl.scrollWidth,windowHeight:docEl.scrollHeight});
+      images.push({svcId:svc.id,svcName:svc.name,dataUrl:cvs.toDataURL('image/jpeg',0.92)});
+    }catch(e){console.warn('캡처 실패:',e);images.push({svcId:svc.id,svcName:svc.name,dataUrl:''});}
+    finally{
+      const c2=document.getElementById(cid);const i2=document.getElementById('sigimg-'+svc.id);const h2=document.getElementById('sighint-'+cid);
+      if(c2)c2.style.display='block';if(i2)i2.style.display='none';if(h2)h2.style.display='';
+    }
+  }
+  return images;
+}
+
+/* ════ PDF 인쇄 ════ */
+function printAllConsents(){
+  const selected=services.filter(s=>selectedSvcs.includes(s.id));
+  selected.forEach(svc=>{
+    const cid='sig-'+svc.id;
+    const canvas=document.getElementById(cid);
+    const img=document.getElementById('sigimg-'+svc.id);
+    if(canvas&&img&&sigPads[cid]?.hasSig) img.src=canvas.toDataURL('image/png');
+  });
+  document.getElementById('print-target').innerHTML=document.getElementById('consent-svc-panes').innerHTML;
+  document.getElementById('print-guide').style.display='block';
+  setTimeout(()=>window.print(),300);
+}
+
+/* ════ 동의 제출 ════ */
+async function submitAllConsents(){
+  const name=document.getElementById('u-name').value.trim();
+  const phone=document.getElementById('u-phone').value.trim();
+  const dob=document.getElementById('u-dob').value.trim();
+  const selected=services.filter(s=>selectedSvcs.includes(s.id));
+
+  const unsigned=selected.filter(svc=>!sigPads['sig-'+svc.id]?.hasSig).map(s=>s.name);
+  if(unsigned.length){alert(`아직 서명하지 않은 서비스:\n- ${unsigned.join('\n- ')}`);return;}
+
+  document.getElementById('loading-msg').textContent='동의서 이미지를 생성하는 중…';
+  document.getElementById('loading-overlay').classList.add('show');
+  try{
+    const images=await captureConsentImages(selected);
+    const now=new Date();
+    const dateStr=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+    for(const svc of selected){
+      const consentMap={};
+      const col=document.querySelector(`input[name="col-${svc.id}"]:checked`);if(col)consentMap.collection=col.value;
+      const tp=document.querySelector(`input[name="tp-${svc.id}"]:checked`);if(tp)consentMap.thirdParty=tp.value;
+      const uid=document.querySelector(`input[name="uid-${svc.id}"]:checked`);if(uid)consentMap.uniqueId=uid.value;
+      const chs=[];['sms','call','email','post'].forEach(ch=>{const el=document.querySelector(`input[name="mkt-${ch}-${svc.id}"]`);if(el&&el.checked)chs.push(ch);});
+      if(chs.length)consentMap.marketing=chs.join(',');
+      else{const mn=document.querySelector(`input[name="mkt-${svc.id}"][value="no"]`);consentMap.marketing=mn?.checked?'no':'';}
+
+      // 법정대리인 정보 수집
+      if(svc.guardian){
+        const gaEl = document.querySelector(`input[name="guardian-agree-${svc.id}"]:checked`);
+        const gnEl = document.getElementById(`guardian-name-${svc.id}`);
+        const grEl = document.getElementById(`guardian-rel-${svc.id}`);
+        const gpEl = document.getElementById(`guardian-phone-${svc.id}`);
+        consentMap.guardianAgree = gaEl ? gaEl.value : '';
+        consentMap.guardianName  = gnEl ? gnEl.value.trim() : '';
+        consentMap.guardianRel   = grEl ? grEl.value.trim() : '';
+        consentMap.guardianPhone = gpEl ? gpEl.value.trim() : '';
+      }
+
+      const rec={
+        id:'r'+Date.now()+Math.random().toString(36).slice(2,6),
+        serviceId:svc.id,serviceName:svc.name,name,phone,dob,consentMap,submittedAt:dateStr,
+        images:images.filter(img=>img.svcId===svc.id)
+      };
+      if(!records[svc.id]) records[svc.id]=[];
+      records[svc.id].push(rec);
+      saveData();
+
+      if(sheetsUrl){
+        document.getElementById('loading-msg').textContent='Google Sheets에 기록 중…';
+        await sendToSheets({submittedAt:dateStr,serviceName:svc.name,name,phone,dob,collection:consentMap.collection||'',thirdParty:consentMap.thirdParty||'',uniqueId:consentMap.uniqueId||'',marketing:consentMap.marketing||''});
+      }
+    }
+
+    document.getElementById('loading-overlay').classList.remove('show');
+    document.getElementById('step3-area').style.display='none';
+    document.getElementById('submit-success').style.display='block';
+    document.getElementById('submit-summary').innerHTML=
+      `<strong>${name}</strong> 님의 동의서가 제출되었습니다.<br>서비스: ${selected.map(s=>s.name).join(', ')}<br>제출 일시: ${dateStr}${sheetsUrl?'<br><span style="color:var(--green);font-size:12px">✅ Google Sheets에 자동 기록되었습니다</span>':''}`;
+    updateStats();
+  }catch(e){
+    document.getElementById('loading-overlay').classList.remove('show');
+    console.error(e);alert('제출 중 오류가 발생했습니다.');
+  }
+}
+
+function resetConsentPage(){
+  document.getElementById('u-name').value='';document.getElementById('u-dob').value='';document.getElementById('u-phone').value='';
+  document.getElementById('submit-success').style.display='none';
+  document.getElementById('print-guide').style.display='none';
+  selectedSvcs=[];sigPads={};
+  setStep(1);
+  renderServiceSelectGrid();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+
+/* ════ 동의 목록 렌더링 (서비스별 탭) ════ */
+function getAgreeStatus(r){
+  const m=r.consentMap;const vals=Object.values(m).filter(v=>v);
+  if(!vals.length)return'none';
+  if(Object.entries(m).some(([k,v])=>k!=='marketing'&&v==='no'))return'partial';
+  return'full';
+}
+
+function getAllRecords(){
+  try{
+    if(!records || typeof records !== 'object') return [];
+    return Object.values(records)
+      .filter(arr => Array.isArray(arr))
+      .flat()
+      .filter(r => r && typeof r === 'object' && r.id);
+  } catch(e){ return []; }
+}
+
+function renderRecSvcTabs(){
+  const tabsEl=document.getElementById('rec-svc-tabs');
+  const allRecs=getAllRecords();
+  // 전체 탭
+  const tabs=[{id:'all',name:'전체',cnt:allRecs.length}];
+  // 서비스별 탭 (레코드가 있는 것만)
+  services.forEach(s=>{
+    const cnt=(records[s.id]||[]).length;
+    if(cnt>0) tabs.push({id:s.id,name:s.name,cnt});
+  });
+  // 서비스에 없어진 서비스의 레코드도 포함
+  Object.keys(records).forEach(sid=>{
+    if(!services.find(s=>s.id===sid)&&(records[sid]||[]).length>0){
+      tabs.push({id:sid,name:'(삭제된 서비스)',cnt:records[sid].length});
+    }
+  });
+
+  tabsEl.innerHTML=tabs.map(t=>`
+    <button class="rec-svc-tab${currentRecSvcId===t.id?' active':''}" onclick="selectRecSvcTab('${t.id}')">
+      ${t.name}<span class="cnt">${t.cnt}</span>
+    </button>`).join('');
+}
+
+function selectRecSvcTab(id){
+  currentRecSvcId=id;
+  renderRecords();
+}
+
+function renderRecords(){
+  renderRecSvcTabs();
+  const search=(document.getElementById('search-input').value||'').toLowerCase();
+  const fAgr=document.getElementById('filter-agree').value;
+
+  // 현재 탭 레코드
+  let recs = currentRecSvcId==='all' ? getAllRecords() : (records[currentRecSvcId]||[]);
+
+  let filtered=recs.filter(r=>{
+    if(search&&!r.name.toLowerCase().includes(search)&&!r.phone.includes(search))return false;
+    if(fAgr&&getAgreeStatus(r)!==fAgr)return false;
+    return true;
+  }).slice().reverse();
+
+  const tbody=document.getElementById('records-tbody');
+  const empty=document.getElementById('records-empty');
+  if(!filtered.length){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+
+  // 서비스명 열: 전체 탭일 때만 표시
+  const showSvcCol = currentRecSvcId==='all';
+
+  tbody.innerHTML=filtered.map((r,i)=>{
+    const status=getAgreeStatus(r);
+    const tagClass={full:'tag-yes',partial:'tag-partial',none:'tag-no'}[status];
+    const tagText={full:'전체 동의',partial:'일부 동의',none:'미동의'}[status];
+
+    // 동의서 이미지 썸네일 + 개별 다운로드
+    const validImgs=(r.images||[]).filter(img=>img.dataUrl);
+    const thumbs=validImgs.map((img,idx)=>`
+      <div class="thumb-item">
+        <img class="thumb" src="${img.dataUrl}" title="클릭하여 크게 보기"
+             onclick="openImgModalById('${r.id}',${idx})"/>
+        <div class="thumb-label">${img.svcName}</div>
+      </div>`).join('');
+    const imgCell = validImgs.length
+      ? `<div class="thumb-wrap">${thumbs}</div>`
+      : `<span style="font-size:11px;color:var(--muted)">—</span>`;
+
+    // 서비스명 셀: 전체 탭일 때만 표시
+    const svcCell = showSvcCol ? `<td><strong style="font-size:12px">${r.serviceName||''}</strong></td>` : '';
+
+    return `<tr data-record-id="${r.id}">
+      <td style="color:var(--muted);text-align:center">${filtered.length-i}</td>
+      ${svcCell}
+      <td>${r.name||''}</td>
+      <td>${r.phone||''}</td>
+      <td><span class="tag ${tagClass}">${tagText}</span></td>
+      <td>${imgCell}</td>
+      <td style="white-space:nowrap;font-size:11.5px">${r.submittedAt||''}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="deleteRecord('${r.serviceId}','${r.id}')">삭제</button></td>
+    </tr>`;
+  }).join('');
+
+  // 서비스명 헤더 열 동적 표시/숨김
+  const thSvc = document.getElementById('th-service');
+  if(thSvc) thSvc.style.display = showSvcCol ? '' : 'none';
+  // tbody의 서비스명 td도 이미 showSvcCol로 조건 처리됨
+}
+
+/* ════ 일괄 이미지 다운로드 ════ */
+async function bulkDownloadImages(){
+  /* ── 현재 필터 기준 이미지 수집 ── */
+  const search = (document.getElementById('search-input').value||'').toLowerCase();
+  const fAgr   = document.getElementById('filter-agree').value;
+  let recs = currentRecSvcId==='all' ? getAllRecords() : (records[currentRecSvcId]||[]);
+  let filtered = recs.filter(r=>{
+    if(search && !r.name.toLowerCase().includes(search) && !(r.phone||'').includes(search)) return false;
+    if(fAgr && getAgreeStatus(r)!==fAgr) return false;
+    return true;
+  });
+
+  const imgItems = []; // { dataUrl, label }
+  filtered.forEach(r=>{
+    (r.images||[]).filter(img=>img.dataUrl).forEach(img=>{
+      imgItems.push({
+        dataUrl: img.dataUrl,
+        label: `${r.name} (${r.submittedAt||''})`
+      });
+    });
+  });
+
+  if(!imgItems.length){
+    alert('다운로드할 이미지가 없습니다.\n동의서 제출 시 이미지가 생성됩니다.');
+    return;
+  }
+  if(!confirm(`총 ${imgItems.length}개의 동의서 이미지를\n하나의 이미지 파일로 합쳐서 다운로드합니다.\n계속하시겠습니까?`)) return;
+
+  document.getElementById('loading-msg').textContent = '이미지 합치는 중…';
+  document.getElementById('loading-overlay').classList.add('show');
+
+  try {
+    /* ── 모든 이미지를 HTMLImageElement로 로드 ── */
+    const loadedImgs = await Promise.all(imgItems.map(item =>
+      new Promise((res, rej) => {
+        const img = new Image();
+        img.onload  = () => res(img);
+        img.onerror = () => res(null); // 실패해도 계속
+        img.src = item.dataUrl;
+      })
+    ));
+
+    const validImgs = loadedImgs.filter(Boolean);
+    if(!validImgs.length){ alert('이미지 로드에 실패했습니다.'); return; }
+
+    /* ── 세로로 이어 붙일 Canvas 크기 계산 ── */
+    const GAP     = 20;   // 이미지 사이 간격(px)
+    const PADDING = 30;   // 상하 여백
+    const canvasW = Math.max(...validImgs.map(i=>i.naturalWidth||i.width), 800);
+    const canvasH = validImgs.reduce((sum, i)=>sum+(i.naturalHeight||i.height), 0)
+                    + GAP * (validImgs.length - 1)
+                    + PADDING * 2;
+
+    const canvas = document.createElement('canvas');
+    canvas.width  = canvasW;
+    canvas.height = canvasH;
+    const ctx = canvas.getContext('2d');
+
+    /* ── 흰 배경 ── */
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, canvasW, canvasH);
+
+    /* ── 이미지 순서대로 그리기 ── */
+    let y = PADDING;
+    validImgs.forEach((img, idx) => {
+      const iw = img.naturalWidth  || img.width;
+      const ih = img.naturalHeight || img.height;
+      // 가로 꽉 채우되 비율 유지
+      const scale = canvasW / iw;
+      const dw = canvasW;
+      const dh = Math.round(ih * scale);
+      ctx.drawImage(img, 0, y, dw, dh);
+      y += dh + GAP;
+    });
+
+    /* ── Canvas → Blob → 다운로드 ── */
+    canvas.toBlob(blob => {
+      if(!blob){ alert('이미지 변환에 실패했습니다.'); return; }
+      const today   = new Date().toISOString().slice(0,10);
+      const fileName = `동의서_일괄_${today}.jpg`;
+      try {
+        const url = URL.createObjectURL(blob);
+        const a   = document.createElement('a');
+        a.href     = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(()=> URL.revokeObjectURL(url), 2000);
+      } catch(e) {
+        /* createObjectURL 불가 환경 → data URL fallback */
+        const reader = new FileReader();
+        reader.onload = () => {
+          const a = document.createElement('a');
+          a.href     = reader.result;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        };
+        reader.readAsDataURL(blob);
+      }
+      document.getElementById('loading-overlay').classList.remove('show');
+      alert(`✅ 다운로드 완료!\n파일명: ${fileName}\n포함 이미지: ${validImgs.length}개`);
+    }, 'image/jpeg', 0.92);
+
+  } catch(err) {
+    document.getElementById('loading-overlay').classList.remove('show');
+    console.error('일괄다운로드 오류:', err);
+    alert('이미지 생성 중 오류가 발생했습니다.\n' + err.message);
+  }
+}
+
+function deleteRecord(svcId, recId){
+  if(!confirm('이 기록을 삭제하시겠습니까?'))return;
+  if(records[svcId]) records[svcId]=records[svcId].filter(r=>r.id!==recId);
+  saveData();
+  renderRecords();updateStats();
+}
+function clearAllRecords(){
+  if(!confirm('모든 기록을 삭제하시겠습니까?'))return;
+  records={};saveData();renderRecords();updateStats();
+}
+function updateStats(){
+  const all=getAllRecords();
+  const today=new Date().toISOString().slice(0,10);
+  document.getElementById('stat-total').textContent=all.length;
+  document.getElementById('stat-full').textContent=all.filter(r=>getAgreeStatus(r)==='full').length;
+  document.getElementById('stat-partial').textContent=all.filter(r=>getAgreeStatus(r)==='partial').length;
+  document.getElementById('stat-today').textContent=all.filter(r=>r.submittedAt.startsWith(today)).length;
+}
+function exportCSV(){
+  try{
+    // records가 올바른 구조인지 확인 후 전체 레코드 수집
+    const all = getAllRecords().filter(r => r && typeof r === 'object');
+    if(!all.length){ alert('내보낼 데이터가 없습니다.'); return; }
+
+    const header = ['번호','서비스명','성명','연락처','생년월일',
+                    '수집이용동의','제3자동의','고유식별동의','마케팅동의','제출일시'];
+    const rows = [header];
+
+    all.forEach((r, i)=>{
+      const m = r.consentMap || {};
+      // 마케팅 동의값 한글로 변환
+      let mkt = m.marketing || '';
+      if(mkt && mkt !== 'no'){
+        const chMap = {sms:'SMS', call:'전화', email:'이메일', post:'우편'};
+        mkt = mkt.split(',').map(c=>chMap[c]||c).join('/');
+      } else if(mkt === 'no') { mkt = '미동의'; }
+
+      rows.push([
+        i + 1,
+        r.serviceName   || '',
+        r.name          || '',
+        r.phone         || '',
+        r.dob           || '',
+        m.collection === 'yes' ? '동의' : m.collection === 'no' ? '미동의' : (m.collection || ''),
+        m.thirdParty === 'yes' ? '동의' : m.thirdParty === 'no' ? '미동의' : (m.thirdParty || ''),
+        m.uniqueId   === 'yes' ? '동의' : m.uniqueId   === 'no' ? '미동의' : (m.uniqueId   || ''),
+        mkt,
+        r.submittedAt   || ''
+      ]);
+    });
+
+    // CSV 문자열 생성
+    const csv = rows.map(row =>
+      row.map(cell => '"' + String(cell == null ? '' : cell).replace(/"/g, '""') + '"').join(',')
+    ).join('\r\n');
+
+    const bom  = '\uFEFF'; // 엑셀 한글 깨짐 방지 BOM
+    const blob = new Blob([bom + csv], { type: 'text/csv;charset=utf-8;' });
+    const fileName = '동의목록_' + new Date().toISOString().slice(0,10) + '.csv';
+
+    // 다운로드 방법 1: URL.createObjectURL (대부분 환경)
+    try{
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(()=> URL.revokeObjectURL(url), 1000);
+    } catch(e1){
+      // 다운로드 방법 2: data URI 방식 (샌드박스 환경 fallback)
+      try{
+        const reader = new FileReader();
+        reader.onload = function(){
+          const a = document.createElement('a');
+          a.href = reader.result;
+          a.download = fileName;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+        };
+        reader.readAsDataURL(blob);
+      } catch(e2){
+        // 방법 3: 새 창에 텍스트로 열기
+        const w = window.open('', '_blank');
+        if(w){
+          w.document.write('<pre style="font-family:monospace;font-size:12px">' + csv.replace(/</g,'&lt;') + '</pre>');
+          w.document.title = fileName;
+        } else {
+          alert('CSV 다운로드를 차단하는 환경입니다.\n브라우저 팝업 차단을 해제하거나 다른 브라우저를 이용해 주세요.');
+        }
+      }
+    }
+  } catch(err){
+    console.error('CSV 오류:', err);
+    alert('CSV 생성 중 오류가 발생했습니다:\n' + err.message);
+  }
+}
+
+/* ════ 이미지 뷰어 ════ */
+function openImgModalById(recordId,imgIdx){
+  const rec=getAllRecords().find(r=>r.id===recordId);
+  if(!rec)return;
+  const img=(rec.images||[])[imgIdx];
+  if(!img||!img.dataUrl){alert('이미지가 없습니다.');return;}
+  _currentImgUrl=img.dataUrl;_currentImgName=rec.name+'_'+img.svcName;
+  document.getElementById('img-modal-src').src=img.dataUrl;
+  document.getElementById('img-modal-name').textContent=rec.name+' — '+img.svcName;
+  document.getElementById('img-modal').classList.add('show');
+}
+function closeImgModal(){ document.getElementById('img-modal').classList.remove('show');_currentImgUrl='';_currentImgName=''; }
+function downloadModalImg(){
+  if(!_currentImgUrl){alert('저장할 이미지가 없습니다.');return;}
+  const a=document.createElement('a');a.href=_currentImgUrl;
+  a.download='동의서_'+(_currentImgName||'동의서').replace(/[\s/\\:*?"<>|]/g,'_')+'.jpg';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeImgModal();});
+
+/* ════ 서비스 관리 ════ */
+function initDefaultServices(){
+  services=[{
+    id:'s1',name:'복지관 회원 등록 및 프로그램 이용',org:'다행복한종합사회복지관',active:true,guardian:true,uniqueId:true,marketing:true,
+    intro:'다행복한종합사회복지관의 프로그램 이용을 목적으로 필요한 최소한의 개인정보를 수집·이용합니다. 귀하는 동의를 거부할 권리가 있으며, 동의를 거부할 경우 복지관 및 프로그램 이용이 불가하거나 서비스에 제한이 있을 수 있습니다.',
+    collection:[{purpose:'회원등록, 복지관 및 프로그램 이용안내',items:'(필수) 성명, 생년월일, 성별, 연락처\n(선택) 주소, 이메일, 감면 관련 증빙서류',retention:'3년 또는 이용종결 까지'}],
+    thirdParty:[{receiver:'토스페이먼츠(PG사), 보험사',purpose:'이용요금 신용결제 등 거래, 여행자보험 가입',items:'성명, 카드사, 구매종목, 주민등록번호',retention:'3년 또는 파기요청시 까지'}]
+  }];
+}
+
+function renderServiceList(){
+  const el=document.getElementById('service-list-el');
+  document.getElementById('svc-count-badge').textContent=services.length;
+  if(!services.length){el.innerHTML='<div style="padding:20px;text-align:center;font-size:13px;color:var(--muted)">등록된 서비스가 없습니다.</div>';return;}
+  el.innerHTML=services.map(s=>`
+    <div class="service-item" id="si-${s.id}">
+      <div class="service-item-head" onclick="toggleSI('${s.id}')">
+        <div style="width:7px;height:7px;border-radius:50%;background:${s.active?'var(--green)':'#94a3b8'};flex-shrink:0"></div>
+        <span class="svc-name">${s.name}</span>
+        <span class="svc-badge ${s.active?'badge-active':'badge-inactive'}">${s.active?'활성':'비활성'}</span>
+        <span style="font-size:11px;color:var(--muted);margin-left:4px;flex-shrink:0">${s.org||''}</span>
+        <div style="display:flex;gap:5px;margin-left:8px;flex-shrink:0">
+          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();openEditServiceModal('${s.id}')">편집</button>
+          <button class="btn btn-sm" style="background:#fee2e2;color:#dc2626" onclick="event.stopPropagation();deleteService('${s.id}')">삭제</button>
+        </div>
+      </div>
+      <div class="service-item-body">
+        <div style="font-size:11.5px;color:var(--muted);line-height:1.9">
+          <strong style="color:var(--body)">수집 목적:</strong> ${(s.collection[0]||{}).purpose||'—'}<br>
+          <strong style="color:var(--body)">수집 항목:</strong> ${(s.collection[0]||{}).items||'—'}
+          <div style="display:flex;gap:5px;margin-top:5px;flex-wrap:wrap">
+            ${s.guardian?'<span style="background:#eff6ff;color:#2563eb;font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600">법정대리인</span>':''}
+            ${s.uniqueId?'<span style="background:#f0fdf4;color:#16a34a;font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600">고유식별</span>':''}
+            ${s.marketing?'<span style="background:#fefce8;color:#a16207;font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600">마케팅</span>':''}
+            <span style="background:#f1f5f9;color:var(--muted);font-size:10px;padding:2px 7px;border-radius:20px;font-weight:600">동의 ${(records[s.id]||[]).length}건</span>
+          </div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+function toggleSI(id){document.getElementById('si-'+id).classList.toggle('open');}
+
+function openNewServiceModal(){
+  editingSvcId=null;
+  document.getElementById('modal-title').textContent='서비스 추가';
+  document.getElementById('m-name').value='';document.getElementById('m-org').value='다행복한종합사회복지관';
+  document.getElementById('m-intro').value='';document.getElementById('m-active').checked=true;
+  document.getElementById('m-guardian').checked=false;document.getElementById('m-unique-id').checked=false;document.getElementById('m-marketing').checked=false;
+  document.getElementById('collection-tbody').innerHTML='';document.getElementById('thirdparty-tbody').innerHTML='';
+  addCollectionRow();addThirdPartyRow();
+  document.getElementById('svc-modal').style.display='block';
+}
+function openEditServiceModal(id){
+  const s=services.find(x=>x.id===id);if(!s)return;
+  editingSvcId=id;
+  document.getElementById('modal-title').textContent='서비스 편집 — '+s.name;
+  document.getElementById('m-name').value=s.name;document.getElementById('m-org').value=s.org||'';
+  document.getElementById('m-intro').value=s.intro||'';document.getElementById('m-active').checked=s.active;
+  document.getElementById('m-guardian').checked=s.guardian;document.getElementById('m-unique-id').checked=s.uniqueId;document.getElementById('m-marketing').checked=s.marketing;
+  document.getElementById('collection-tbody').innerHTML='';s.collection.forEach(r=>addCollectionRow(r));if(!s.collection.length)addCollectionRow();
+  document.getElementById('thirdparty-tbody').innerHTML='';s.thirdParty.forEach(r=>addThirdPartyRow(r));if(!s.thirdParty.length)addThirdPartyRow();
+  document.getElementById('svc-modal').style.display='block';
+}
+function closeSvcModal(){document.getElementById('svc-modal').style.display='none';}
+function addCollectionRow(d={}){
+  const tb=document.getElementById('collection-tbody');const tr=document.createElement('tr');
+  tr.innerHTML=`<td><textarea rows="2" placeholder="회원등록, 프로그램 이용안내">${d.purpose||''}</textarea></td><td><textarea rows="2" placeholder="(필수) 성명…">${d.items||''}</textarea></td><td><input type="text" placeholder="3년 또는 이용종결" value="${d.retention||''}"/></td><td style="text-align:center"><button onclick="this.closest('tr').remove()" style="background:none;border:none;cursor:pointer;color:#dc2626;font-size:15px">✕</button></td>`;
+  tb.appendChild(tr);
+}
+function addThirdPartyRow(d={}){
+  const tb=document.getElementById('thirdparty-tbody');const tr=document.createElement('tr');
+  tr.innerHTML=`<td><input type="text" placeholder="토스페이먼츠" value="${d.receiver||''}"/></td><td><textarea rows="2" placeholder="이용요금 결제">${d.purpose||''}</textarea></td><td><textarea rows="2" placeholder="성명, 카드사">${d.items||''}</textarea></td><td><input type="text" placeholder="3년" value="${d.retention||''}"/></td><td style="text-align:center"><button onclick="this.closest('tr').remove()" style="background:none;border:none;cursor:pointer;color:#dc2626;font-size:15px">✕</button></td>`;
+  tb.appendChild(tr);
+}
+function saveService(){
+  const name=document.getElementById('m-name').value.trim();if(!name){alert('서비스명을 입력해 주세요.');return;}
+  const collection=[...document.getElementById('collection-tbody').querySelectorAll('tr')].map(tr=>{const t=tr.querySelectorAll('td');return{purpose:t[0].querySelector('textarea').value.trim(),items:t[1].querySelector('textarea').value.trim(),retention:t[2].querySelector('input').value.trim()};}).filter(r=>r.purpose||r.items);
+  const thirdParty=[...document.getElementById('thirdparty-tbody').querySelectorAll('tr')].map(tr=>{const t=tr.querySelectorAll('td');return{receiver:t[0].querySelector('input').value.trim(),purpose:t[1].querySelector('textarea').value.trim(),items:t[2].querySelector('textarea').value.trim(),retention:t[3].querySelector('input').value.trim()};}).filter(r=>r.receiver||r.purpose);
+  const svc={id:editingSvcId||'s'+Date.now(),name,org:document.getElementById('m-org').value.trim(),intro:document.getElementById('m-intro').value.trim(),active:document.getElementById('m-active').checked,guardian:document.getElementById('m-guardian').checked,uniqueId:document.getElementById('m-unique-id').checked,marketing:document.getElementById('m-marketing').checked,collection,thirdParty};
+  if(editingSvcId){services[services.findIndex(x=>x.id===editingSvcId)]=svc;}else{services.push(svc);}
+  saveData();
+  closeSvcModal();
+  renderServiceList();
+  renderServiceSelectGrid(); // 동의서 작성 화면 즉시 반영
+}
+function deleteService(id){if(!confirm('삭제하시겠습니까?'))return;services=services.filter(x=>x.id!==id);saveData();renderServiceList();renderServiceSelectGrid();}
+
+/* ════ Google Sheets ════ */
+function updateSheetsUI(){
+  document.getElementById('sheets-webhook-url').value=sheetsUrl;
+  const badge=document.getElementById('sheets-status-badge');
+  if(sheetsUrl){badge.textContent='● 연결됨';badge.className='sp-status connected';}
+  else{badge.textContent='● 미연결';badge.className='sp-status disconnected';}
+}
+function sendToSheets(row){
+  return new Promise(resolve=>{
+    if(!sheetsUrl){resolve(false);return;}
+    try{
+      const iframeId='sf-'+Date.now();
+      const iframe=document.createElement('iframe');
+      iframe.name=iframeId;iframe.style.cssText='display:none;position:absolute;width:0;height:0;border:none';
+      document.body.appendChild(iframe);
+      const form=document.createElement('form');
+      form.method='POST';form.action=sheetsUrl;form.target=iframeId;form.style.cssText='display:none';
+      Object.entries(row).forEach(([k,v])=>{const i=document.createElement('input');i.type='hidden';i.name=k;i.value=v||'';form.appendChild(i);});
+      document.body.appendChild(form);
+      const timer=setTimeout(()=>{cleanup();resolve(true);},3000);
+      iframe.onload=()=>{clearTimeout(timer);cleanup();resolve(true);};
+      iframe.onerror=()=>{clearTimeout(timer);cleanup();resolve(false);};
+      form.submit();
+      function cleanup(){try{document.body.removeChild(form);}catch(e){}setTimeout(()=>{try{document.body.removeChild(iframe);}catch(e){}},500);}
+    }catch(e){console.warn(e);resolve(false);}
+  });
+}
+async function saveAndTestSheets(){
+  const url=document.getElementById('sheets-webhook-url').value.trim();
+  if(!url){alert('URL을 입력해 주세요.');return;}
+  sheetsUrl=url;localStorage.setItem('sheetsUrl',url);
+  const badge=document.getElementById('sheets-status-badge');
+  badge.textContent='● 전송 중…';badge.className='sp-status testing';
+  const ok=await sendToSheets({submittedAt:new Date().toLocaleString('ko-KR'),serviceName:'[연결 테스트]',name:'테스트',phone:'',dob:'',collection:'',thirdParty:'',uniqueId:'',marketing:''});
+  if(ok){badge.textContent='● 연결됨';badge.className='sp-status connected';alert('✅ 전송 완료!\nGoogle Sheets에 "연결 테스트" 행이 추가되었는지 확인하세요.');}
+  else{badge.textContent='● 오류 가능성';badge.className='sp-status testing';alert('⚠️ 전송 시도했습니다. Google Sheets를 직접 확인해 주세요.');}
+}
+function clearSheetsUrl(){sheetsUrl='';localStorage.removeItem('sheetsUrl');document.getElementById('sheets-webhook-url').value='';updateSheetsUI();}
+function showSheetsGuide(){const g=document.getElementById('sheets-guide');g.style.display=g.style.display==='none'?'block':'none';}
+
+/* ════ localStorage 저장/불러오기 ════ */
+function saveData(){
+  try{
+    // records는 이미지(dataUrl)가 크므로 이미지 제외하고 저장 후 이미지는 별도 저장
+    const recsSafe = {};
+    Object.keys(records).forEach(sid=>{
+      recsSafe[sid] = records[sid].map(r=>({...r, images: (r.images||[]).map(img=>({svcId:img.svcId, svcName:img.svcName, dataUrl:img.dataUrl||''}))}));
+    });
+    localStorage.setItem('app_services', JSON.stringify(services));
+    // 이미지가 포함된 records는 용량이 클 수 있으므로 try-catch로 안전하게 저장
+    try{
+      localStorage.setItem('app_records', JSON.stringify(recsSafe));
+    }catch(e){
+      // 이미지 제외하고 저장
+      const recsNoImg = {};
+      Object.keys(records).forEach(sid=>{
+        recsNoImg[sid] = records[sid].map(r=>({...r, images:[]}));
+      });
+      localStorage.setItem('app_records', JSON.stringify(recsNoImg));
+      console.warn('이미지 용량 초과로 이미지 제외 저장');
+    }
+  }catch(e){ console.warn('저장 실패:', e); }
+}
+
+function loadData(){
+  try{
+    const svcs = localStorage.getItem('app_services');
+    const recs = localStorage.getItem('app_records');
+
+    // 서비스 불러오기
+    if(svcs){
+      const parsed = JSON.parse(svcs);
+      if(Array.isArray(parsed) && parsed.length > 0){ services = parsed; }
+      else{ initDefaultServices(); saveData(); }
+    } else {
+      initDefaultServices();
+      saveData();
+    }
+
+    // 동의 기록 불러오기 — 구조 검증
+    if(recs){
+      const parsed = JSON.parse(recs);
+      if(parsed && typeof parsed === 'object' && !Array.isArray(parsed)){
+        // 각 서비스별 배열이 정상인지 확인
+        const cleaned = {};
+        Object.entries(parsed).forEach(([sid, arr])=>{
+          if(Array.isArray(arr)){
+            cleaned[sid] = arr.filter(r => r && r.id && r.name)
+              .map(r=>({
+                ...r,
+                consentMap: r.consentMap || {},
+                images: r.images || []
+              }));
+          }
+        });
+        records = cleaned;
+      } else {
+        records = {};
+      }
+    }
+  }catch(e){
+    console.warn('불러오기 실패:', e);
+    initDefaultServices();
+    records = {};
+  }
+}
+
+/* ════ 초기화 ════ */
+loadData();
+setStep(1);
+renderServiceSelectGrid();
+updateSheetsUI();
+// 처음 진입 시 랜딩 화면 표시
+document.getElementById('landing-screen').style.display='flex';
+</script>
+</body>
+</html>
